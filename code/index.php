@@ -51,7 +51,6 @@ while ($row = $result->fetch_assoc()) {
 
     <div id="logo">
         <a href="index.php"><img src="images/anishelf_logo.png" width="200" height="200" alt="AniShelf logo"></a>
-        <a href="index.php"><img src="images/anishelf_logo.png" width="200" height="200" alt="AniShelf logo"></a>
 
     </div>
 
