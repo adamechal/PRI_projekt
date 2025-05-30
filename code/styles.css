@@ -1,0 +1,270 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    background-color: #2C2C2C;
+    color: #E0E0E0;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* NAV bar */
+nav {
+    width: 100%;
+    background-color: #1f1f1f;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-inner {
+    width: 900px;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-inner a {
+    color: #E0E0E0;
+    text-decoration: none;
+    margin: 0 15px;
+    padding: 15px 12px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-inner a:hover {
+    background-color: #FF6600;
+    color: #1f1f1f;
+}
+
+/* Logo */
+#logo {
+    text-align: center;
+    margin: 20px 0;
+}
+
+/* Content */
+#content {
+    width: 900px;
+    background-color: #3A3A3A;
+    border: 1px solid #444;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+/* Karta titulu */
+.title-card {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    background-color: #4A4A4A;
+    gap: 15px;
+}
+
+.title-card img {
+    width: 65px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.title-info a {
+    font-size: 18px;
+    font-weight: bold;
+    color: #FFCC00;
+    text-decoration: none;
+}
+
+.title-info a:hover {
+    text-decoration: underline;
+}
+
+/* Detail titulu */
+.title-detail {
+    max-width: 900px;
+    color: #E0E0E0;
+    font-family: Arial, sans-serif;
+}
+
+.title-en {
+    font-size: 2.5rem;
+    margin-bottom: 0;
+    font-weight: bold;
+    color: #FFCC00;
+}
+
+.title-jp {
+    font-size: 1.5rem;
+    color: #ccc;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+.title-main {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.title-image-info {
+    min-width: 150px;
+    text-align: center;
+}
+
+.title-image-info img {
+    width: 130px;
+    border-radius: 6px;
+    box-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+    margin-bottom: 15px;
+}
+
+.title-info p {
+    font-size: 1rem;
+    margin: 6px 0;
+}
+
+.title-info p strong {
+    color: #FF6600;
+}
+
+.title-synopsis {
+    flex-grow: 1;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    background-color: #4A4A4A;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+    color: #E0E0E0;
+}
+
+.title-synopsis h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #FFCC00;
+}
+
+.title-relations-section {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #ccc;
+}
+
+.title-relations-section h3 {
+    margin: 20px 0 10px;
+}
+
+.relation-card {
+    display: flex;
+    flex-direction: column;
+    background-color: #4A4A4A;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 15px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    transition: background-color 0.2s;
+}
+
+
+.relation-text {
+    font-size: 14px;
+    color: #ccc;
+    margin-bottom: 8px;
+}
+
+.relation-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.relation-content img {
+    width: 60px;
+    height: auto;
+    border-radius: 6px;
+    object-fit: cover;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.relation-title-en {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.relation-title-jp {
+    font-size: 14px;
+    color: #ccc;
+}
+
+
+form {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea,
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        select[multiple] {
+            height: auto;
+        }
+
+        @media (max-width: 640px) {
+            form {
+                padding: 20px;
+                margin: 20px;
+            }
+        }
