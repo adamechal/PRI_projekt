@@ -22,55 +22,49 @@ $query = "
 ";
 
 $result = $mysqli->query($query);
-$anime = [];
+
+// Generuj XML dokument
+$dom = new DOMDocument('1.0', 'UTF-8');
+$dom->formatOutput = true;
+$root = $dom->createElement('titles');
+$dom->appendChild($root);
 
 while ($row = $result->fetch_assoc()) {
-    $row['slug'] = createSlug($row['en_name']);
-    $anime[] = $row;
+    $title = $dom->createElement('title');
+
+    $title->appendChild($dom->createElement('id', $row['id_title']));
+    $title->appendChild($dom->createElement('name', $row['en_name']));
+    $title->appendChild($dom->createElement('episodes', (int)$row['episodes']));
+    $title->appendChild($dom->createElement('type', $row['type_name']));
+    $title->appendChild($dom->createElement('image', $row['image']));
+    $title->appendChild($dom->createElement('slug', createSlug($row['en_name'])));
+    $title->setAttribute('category', 'anime');
+
+    $root->appendChild($title);
 }
 
-$current_page = basename($_SERVER['PHP_SELF']);
-?>
+// Validace XML
+if (!$dom->schemaValidate('schema.xsd')) {
+    header("HTTP/1.1 500 Internal Server Error");
+    echo "Neplatný XML dokument podle XSD.";
+    exit;
+}
 
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AniShelf - Anime</title>
-    <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+// Výstup
+$format = $_GET['format'] ?? 'html';
 
-    <div id="logo">
-        <a href="index.php"><img src="images/anishelf_logo.png" width="200" height="200" alt="AniShelf logo"></a>
-    </div>
+if ($format === 'xml') {
+    header('Content-Type: application/xml; charset=UTF-8');
+    echo $dom->saveXML();
+} elseif ($format === 'html') {
+    $xsl = new DOMDocument();
+    $xsl->load('transform.xsl');
 
-    <nav>
-        <div class="nav-inner">
-            <a href="index.php">Domů</a>
-            <a href="anime.php">Anime</a>
-            <a href="manga.php">Manga</a>
-        </div>
-    </nav>
+    $xslt = new XSLTProcessor();
+    $xslt->importStylesheet($xsl);
 
-    <div id="content">
-        <h1>Anime a filmy</h1>
-
-        <?php if(count($anime) === 0): ?>
-            <p>Žádné anime tituly.</p>
-        <?php else: ?>
-            <?php foreach($anime as $row): ?>
-                <div class="title-card">
-                    <img src="images/<?php echo htmlspecialchars($row['image']); ?>" alt="<?php echo htmlspecialchars($row['en_name']); ?>">
-                    <div class="title-info">
-                        <a href="title.php?slug=<?php echo urlencode($row['slug']); ?>"><?php echo htmlspecialchars($row['en_name']); ?></a><br>
-                        <div class="details"><?php echo htmlspecialchars($row['type_name']) . " (" . (int)$row['episodes'] . " eps)"; ?></div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-
-</body>
-</html>
+    header('Content-Type: text/html; charset=UTF-8');
+    echo $xslt->transformToXML($dom);
+} else {
+    echo "Neplatný formát. Použijte ?format=xml nebo ?format=html.";
+}

@@ -8,7 +8,7 @@ function createSlug($string) {
     return trim($slug, '-');
 }
 
-// Dotaz načte vše potřebné včetně typu
+// 1. Načtení dat z databáze
 $query = "
    SELECT 
     t.id_title,
@@ -24,77 +24,51 @@ ORDER BY t.id_series ASC, t.id_title ASC
 
 $result = $mysqli->query($query);
 
-$anime = [];
-$manga = [];
+// 2. Vytvoření XML dokumentu
+$dom = new DOMDocument('1.0', 'UTF-8');
+$dom->formatOutput = true;
+$root = $dom->createElement('titles');
+$dom->appendChild($root);
 
 while ($row = $result->fetch_assoc()) {
     $type = strtolower($row['type_name']);
-    $row['slug'] = createSlug($row['en_name']); // přidám slug do řádku
+    $title = $dom->createElement('title');
 
-    if ($type === 'tv' || $type === 'movie') {
-        $anime[] = $row;
-    } elseif ($type === 'manga' || $type === 'ln') {
-        $manga[] = $row;
-    }
+    $title->appendChild($dom->createElement('id', $row['id_title']));
+    $title->appendChild($dom->createElement('name', $row['en_name']));
+    $title->appendChild($dom->createElement('episodes', (int)$row['episodes']));
+    $title->appendChild($dom->createElement('type', $row['type_name']));
+    $title->appendChild($dom->createElement('image', $row['image']));
+    $title->appendChild($dom->createElement('slug', createSlug($row['en_name'])));
+    $title->setAttribute('category', ($type === 'tv' || $type === 'movie') ? 'anime' : 'manga');
+
+    $root->appendChild($title);
 }
-?>
 
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AniShelf - Seznam titulů</title>
-    <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+// 3. Validace proti XSD
+$valid = $dom->schemaValidate('schema.xsd');
+if (!$valid) {
+    header("HTTP/1.1 500 Internal Server Error");
+    echo "Neplatný XML dokument podle XSD.";
+    exit;
+}
 
-    <div id="logo">
-        <a href="index.php"><img src="images/anishelf_logo.png" width="200" height="200" alt="AniShelf logo"></a>
+// 4. Výstup podle požadovaného formátu
+$format = $_GET['format'] ?? 'html';
 
-    </div>
+if ($format === 'xml') {
+    header('Content-Type: application/xml; charset=UTF-8');
+    echo $dom->saveXML();
+} elseif ($format === 'html') {
+    // Transformace přes XSL
+    $xsl = new DOMDocument();
+    $xsl->load('transform.xsl');
 
-    <nav>
-        <div class="nav-inner">
-            <a href="index.php">Domů</a>
-            <a href="anime.php">Anime</a>
-            <a href="manga.php">Manga</a>
-        </div>
-    </nav>
+    $xslt = new XSLTProcessor();
+    $xslt->importStylesheet($xsl);
 
-    <div id="content">
-        <h1>Seznam titulů</h1>
-
-        <h2 class="section-title">Anime</h2>
-        <?php if(count($anime) === 0): ?>
-            <p>Žádné anime tituly.</p>
-        <?php else: ?>
-            <?php foreach($anime as $row): ?>
-                <div class="title-card">
-                    <img src="images/<?php echo $row['image']; ?>" alt="<?php echo $row['en_name']; ?>">
-                    <div class="title-info">
-                        <a href="title.php?slug=<?php echo $row['slug']; ?>"><?php echo $row['en_name']; ?></a><br>
-                        <div class="details"><?php echo $row['type_name'] . " (" . (int)$row['episodes'] . " eps)"; ?></div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-
-        <h2 class="section-title">Manga</h2>
-        <?php if(count($manga) === 0): ?>
-            <p>Žádné manga tituly.</p>
-        <?php else: ?>
-            <?php foreach($manga as $row): ?>
-                <div class="title-card">
-                    <img src="images/<?php echo $row['image']; ?>" alt="<?php echo $row['en_name']; ?>">
-                    <div class="title-info">
-                        <a href="manga_ln_title.php?slug=<?php echo $row['slug']; ?>"><?php echo $row['en_name']; ?></a><br>
-                        <div class="details"><?php echo $row['type_name']; ?></div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-
-</body>
-</html>
+    header('Content-Type: text/html; charset=UTF-8');
+    echo $xslt->transformToXML($dom);
+} else {
+    echo "Neplatný formát. Použijte ?format=xml nebo ?format=html.";
+}

@@ -8,12 +8,14 @@ function createSlug($string) {
     return trim($slug, '-');
 }
 
+// 1. Dotaz pro MANGA a LN
 $query = "
     SELECT 
         t.id_title,
         t.en_name,
         ty.type_name,
-        t.image
+        t.image,
+        t.episodes
     FROM titles t
     JOIN types ty ON t.id_type = ty.id_type
     WHERE ty.type_name IN ('manga', 'ln')
@@ -21,55 +23,51 @@ $query = "
 ";
 
 $result = $mysqli->query($query);
-$manga = [];
+
+// 2. Vytvoření XML dokumentu
+$dom = new DOMDocument('1.0', 'UTF-8');
+$dom->formatOutput = true;
+$root = $dom->createElement('titles');
+$dom->appendChild($root);
 
 while ($row = $result->fetch_assoc()) {
-    $row['slug'] = createSlug($row['en_name']);
-    $manga[] = $row;
+    $title = $dom->createElement('title');
+
+    // ✅ POŘADÍ musí odpovídat přesně XSD definici
+    $title->appendChild($dom->createElement('id', $row['id_title']));
+    $title->appendChild($dom->createElement('name', $row['en_name']));
+    $title->appendChild($dom->createElement('episodes', (int)($row['episodes'] ?? 0)));
+    $title->appendChild($dom->createElement('type', $row['type_name']));
+    $title->appendChild($dom->createElement('image', $row['image']));
+    $title->appendChild($dom->createElement('slug', createSlug($row['en_name'])));
+
+    $title->setAttribute('category', 'manga');
+    $root->appendChild($title);
 }
 
-$current_page = basename($_SERVER['PHP_SELF']);
-?>
+// 3. Validace proti XSD
+if (!$dom->schemaValidate('schema.xsd')) {
+    // Pozor: nesmí být žádný výstup před header()
+    header("HTTP/1.1 500 Internal Server Error");
+    echo "Neplatný XML dokument podle XSD.";
+    exit;
+}
 
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AniShelf - Manga</title>
-    <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+// 4. Výstup podle parametru
+$format = $_GET['format'] ?? 'html';
 
-    <div id="logo">
-        <a href="index.php"><img src="images/anishelf_logo.png" width="200" height="200" alt="AniShelf logo"></a>
-    </div>
+if ($format === 'xml') {
+    header('Content-Type: application/xml; charset=UTF-8');
+    echo $dom->saveXML();
+} elseif ($format === 'html') {
+    $xsl = new DOMDocument();
+    $xsl->load('transform.xsl');
 
-    <nav>
-        <div class="nav-inner">
-            <a href="index.php">Domů</a>
-            <a href="anime.php">Anime</a>
-            <a href="manga.php">Manga</a>
-        </div>
-    </nav>
+    $xslt = new XSLTProcessor();
+    $xslt->importStylesheet($xsl);
 
-    <div id="content">
-        <h1>Manga a Light Novely</h1>
-
-        <?php if(count($manga) === 0): ?>
-            <p>Žádné manga tituly.</p>
-        <?php else: ?>
-            <?php foreach($manga as $row): ?>
-                <div class="title-card">
-                    <img src="images/<?php echo htmlspecialchars($row['image']); ?>" alt="<?php echo htmlspecialchars($row['en_name']); ?>">
-                    <div class="title-info">
-                        <a href="title.php?slug=<?php echo urlencode($row['slug']); ?>"><?php echo htmlspecialchars($row['en_name']); ?></a><br>
-                        <div class="details"><?php echo htmlspecialchars($row['type_name']); ?></div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-
-</body>
-</html>
+    header('Content-Type: text/html; charset=UTF-8');
+    echo $xslt->transformToXML($dom);
+} else {
+    echo "Neplatný formát. Použijte ?format=xml nebo ?format=html.";
+}

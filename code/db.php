@@ -5,5 +5,4 @@ if($mysqli->connect_error){
     die("Chyba připojení: " . $mysqli->connect_error);
 }
 
-?>
 

@@ -9,7 +9,9 @@ function createSlug($string) {
 }
 
 if (!isset($_GET['slug'])) {
-    die("Neplatná stránka");
+    header("HTTP/1.1 400 Bad Request");
+    echo "Chybějící slug.";
+    exit;
 }
 
 $slug = $_GET['slug'];
@@ -29,7 +31,6 @@ $query = "
 ";
 
 $result = $mysqli->query($query);
-
 $foundTitle = null;
 
 while ($row = $result->fetch_assoc()) {
@@ -40,79 +41,55 @@ while ($row = $result->fetch_assoc()) {
 }
 
 if (!$foundTitle) {
-    die("Manga nebo LN verze titulu nebyla nalezena.");
+    header("HTTP/1.1 404 Not Found");
+    echo "Manga nebo LN verze titulu nebyla nalezena.";
+    exit;
 }
-?>
 
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8" />
-    <title><?php echo $foundTitle['en_name']; ?> - AniShelf</title>
-    <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+// === XML konstrukce ===
+$dom = new DOMDocument('1.0', 'UTF-8');
+$dom->formatOutput = true;
 
-<div id="logo">
-    <a href="index.php"><img src="images/anishelf_logo.png" width="200" height="200" alt="AniShelf logo"></a>
-</div>
+// XSL link
+$pi = $dom->createProcessingInstruction('xml-stylesheet', 'type="text/xsl" href="manga_ln_detail.xsl"');
+$dom->appendChild($pi);
 
-<nav>
-    <div class="nav-inner">
-        <a href="index.php">Domů</a>
-        <a href="anime.php">Anime</a>
-        <a href="manga.php">Manga</a>
-    </div>
-</nav>
+$root = $dom->createElement('title');
+$dom->appendChild($root);
 
-<div id="content" class="title-detail">
+$root->appendChild($dom->createElement('id', $foundTitle['id_title']));
+$root->appendChild($dom->createElement('name_en', $foundTitle['en_name']));
+$root->appendChild($dom->createElement('name_jp', $foundTitle['jp_name']));
+$root->appendChild($dom->createElement('type', $foundTitle['type_name']));
+$root->appendChild($dom->createElement('status', $foundTitle['status_name']));
+$root->appendChild($dom->createElement('genres', $foundTitle['genres_list'] ?? 'Neznámé'));
+$root->appendChild($dom->createElement('episodes', (int)$foundTitle['episodes']));
+$root->appendChild($dom->createElement('image', $foundTitle['image']));
+$root->appendChild($dom->createElement('synopsis', $foundTitle['synopsis']));
+$root->appendChild($dom->createElement('slug', createSlug($foundTitle['en_name'])));
 
-    <h1 class="title-en"><?php echo $foundTitle['en_name']; ?></h1>
-    <h2 class="title-jp"><?php echo $foundTitle['jp_name']; ?></h2>
+$relationsNode = $dom->createElement('relations');
+$root->appendChild($relationsNode);
 
-    <div class="title-main">
-
-        <div class="title-image-info">
-            <img src="images/<?php echo $foundTitle['image']; ?>" alt="<?php echo $foundTitle['en_name']; ?>" class="title-image">
-
-            <div class="title-info">
-                <p><strong>Typ:</strong> <?php echo $foundTitle['type_name']; ?></p>
-                <p><strong>Status:</strong> <?php echo $foundTitle['status_name']; ?></p>
-                <p><strong>Žánry:</strong> <?php echo $foundTitle['genres_list'] ?: 'Neznámé'; ?></p>
-                <p><strong>Epizody:</strong> <?php echo (int)$foundTitle['episodes']; ?></p>
-            </div>
-        </div>
-
-        <div class="title-synopsis">
-            <h3>Synopse</h3>
-            <p><?php echo nl2br($foundTitle['synopsis']); ?></p>
-        </div>
-
-    </div>
-
-    <div class="title-relations-section">
-<?php
 $s = (int)$foundTitle['id_series'];
 $currentId = (int)$foundTitle['id_title'];
 $currentType = (int)$foundTitle['id_type'];
 
-// Získání ostatních titulů ze série
-$result = $mysqli->query("
+// 1. Vztahy/adaptace
+$displayedIDs = [];
+
+$res = $mysqli->query("
     SELECT t.*, ty.type_name
     FROM titles t
     JOIN types ty ON t.id_type = ty.id_type
-    WHERE t.id_series = $s
-      AND t.id_title != $currentId
+    WHERE t.id_series = $s AND t.id_title != $currentId
     ORDER BY t.id_title
 ");
 
-$displayedIDs = [];
-
-while ($row = $result->fetch_assoc()) {
+while ($row = $res->fetch_assoc()) {
     $relatedId = (int)$row['id_title'];
     $relationType = null;
 
-    // Zjisti vztah
     $relQuery = $mysqli->query("
         SELECT rt.type_key, tr.id_title, tr.id_related_title
         FROM title_relations tr
@@ -125,18 +102,15 @@ while ($row = $result->fetch_assoc()) {
     if ($rel = $relQuery->fetch_assoc()) {
         $key = $rel['type_key'];
         $isOutgoing = ($rel['id_title'] == $currentId);
-
         $map = [
             'sequel' => $isOutgoing ? 'Sequel' : 'Prequel',
             'prequel' => $isOutgoing ? 'Prequel' : 'Sequel',
             'remake' => 'Remake',
             'side_story' => $isOutgoing ? 'Vedlejší příběh' : 'Hlavní příběh',
         ];
-
         $relationType = $map[$key] ?? ucfirst($key);
     }
 
-    // Adaptace = jiný typ (např. anime), ne manga/LN
     $typeLower = strtolower($row['type_name']);
     if (!$relationType && !in_array($typeLower, ['manga', 'ln']) && $row['id_type'] != $currentType) {
         $relationType = 'Adaptace';
@@ -144,31 +118,20 @@ while ($row = $result->fetch_assoc()) {
 
     if (!$relationType) continue;
 
-    $slug = createSlug($row['en_name']);
-    $isBook = in_array($typeLower, ['manga', 'ln']);
-    $link = $isBook
-        ? 'manga_ln_title.php?slug=' . urlencode($slug)
-        : 'title.php?slug=' . urlencode($slug);
-
     $displayedIDs[] = $row['id_title'];
 
-    echo '
-    <a class="relation-card" href="' . $link . '">
-        <div class="relation-text">
-            <strong>' . htmlspecialchars($relationType) . '</strong> (' . htmlspecialchars($row['type_name']) . ')
-        </div>
-        <div class="relation-content">
-            <img src="images/' . htmlspecialchars($row['image']) . '" alt="' . htmlspecialchars($row['en_name']) . '">
-            <div>
-                <div class="relation-title-en">' . htmlspecialchars($row['en_name']) . '</div>
-                <div class="relation-title-jp">' . htmlspecialchars($row['jp_name']) . '</div>
-            </div>
-        </div>
-    </a>';
+    $relNode = $dom->createElement('relation');
+    $relNode->appendChild($dom->createElement('type', $relationType));
+    $relNode->appendChild($dom->createElement('name_en', $row['en_name']));
+    $relNode->appendChild($dom->createElement('name_jp', $row['jp_name']));
+    $relNode->appendChild($dom->createElement('image', $row['image']));
+    $relNode->appendChild($dom->createElement('content_type', $row['type_name']));
+    $relNode->appendChild($dom->createElement('slug', createSlug($row['en_name'])));
+    $relationsNode->appendChild($relNode);
 }
 
-// Zobraz všechny mangy/LN ze série (kromě aktuálního)
-$result = $mysqli->query("
+// 2. Ostatní manga/LN ze série (bez vztahu)
+$res = $mysqli->query("
     SELECT t.*, ty.type_name
     FROM titles t
     JOIN types ty ON t.id_type = ty.id_type
@@ -178,30 +141,18 @@ $result = $mysqli->query("
     ORDER BY t.id_title
 ");
 
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $slug = createSlug($row['en_name']);
-        $link = 'manga_ln_title.php?slug=' . urlencode($slug);
+while ($row = $res->fetch_assoc()) {
+    if (in_array($row['id_title'], $displayedIDs)) continue;
 
-        echo '
-        <a class="relation-card" href="' . $link . '">
-            <div class="relation-text">
-                <strong>Adaptace</strong> (' . htmlspecialchars($row['type_name']) . ')
-            </div>
-            <div class="relation-content">
-                <img src="images/' . htmlspecialchars($row['image']) . '" alt="' . htmlspecialchars($row['en_name']) . '">
-                <div>
-                    <div class="relation-title-en">' . htmlspecialchars($row['en_name']) . '</div>
-                    <div class="relation-title-jp">' . htmlspecialchars($row['jp_name']) . '</div>
-                </div>
-            </div>
-        </a>';
-    }
+    $relNode = $dom->createElement('relation');
+    $relNode->appendChild($dom->createElement('type', 'Adaptace'));
+    $relNode->appendChild($dom->createElement('name_en', $row['en_name']));
+    $relNode->appendChild($dom->createElement('name_jp', $row['jp_name']));
+    $relNode->appendChild($dom->createElement('image', $row['image']));
+    $relNode->appendChild($dom->createElement('content_type', $row['type_name']));
+    $relNode->appendChild($dom->createElement('slug', createSlug($row['en_name'])));
+    $relationsNode->appendChild($relNode);
 }
 
-?>
-    </div>
-</div>
-
-</body>
-</html>
+header('Content-Type: application/xml; charset=UTF-8');
+echo $dom->saveXML();
