@@ -23,48 +23,37 @@ $query = "
 
 $result = $mysqli->query($query);
 
-// Generuj XML dokument
 $dom = new DOMDocument('1.0', 'UTF-8');
 $dom->formatOutput = true;
-$root = $dom->createElement('titles');
-$dom->appendChild($root);
+
+$titlesElement = $dom->createElement('titles');
 
 while ($row = $result->fetch_assoc()) {
     $title = $dom->createElement('title');
+    $title->setAttribute('category', 'anime');
 
-    $title->appendChild($dom->createElement('id', $row['id_title']));
     $title->appendChild($dom->createElement('name', $row['en_name']));
     $title->appendChild($dom->createElement('episodes', (int)$row['episodes']));
     $title->appendChild($dom->createElement('type', $row['type_name']));
     $title->appendChild($dom->createElement('image', $row['image']));
     $title->appendChild($dom->createElement('slug', createSlug($row['en_name'])));
-    $title->setAttribute('category', 'anime');
 
-    $root->appendChild($title);
+    $titlesElement->appendChild($title);
 }
 
-// Validace XML
+$dom->appendChild($titlesElement);
+
 if (!$dom->schemaValidate('schema.xsd')) {
-    header("HTTP/1.1 500 Internal Server Error");
-    echo "Neplatný XML dokument podle XSD.";
-    exit;
+    header('Content-Type: text/plain; charset=UTF-8');
+    die("Neplatný XML dokument podle XSD.");
 }
 
-// Výstup
-$format = $_GET['format'] ?? 'html';
+$xsl = new DOMDocument();
+$xsl->load('transform_anime.xsl');
 
-if ($format === 'xml') {
-    header('Content-Type: application/xml; charset=UTF-8');
-    echo $dom->saveXML();
-} elseif ($format === 'html') {
-    $xsl = new DOMDocument();
-    $xsl->load('transform.xsl');
+$proc = new XSLTProcessor();
+$proc->importStylesheet($xsl);
 
-    $xslt = new XSLTProcessor();
-    $xslt->importStylesheet($xsl);
-
-    header('Content-Type: text/html; charset=UTF-8');
-    echo $xslt->transformToXML($dom);
-} else {
-    echo "Neplatný formát. Použijte ?format=xml nebo ?format=html.";
-}
+header('Content-Type: text/html; charset=UTF-8');
+echo $proc->transformToXML($dom);
+?>

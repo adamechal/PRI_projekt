@@ -20,9 +20,12 @@
 
         <nav>
           <div class="nav-inner">
-            <a href="index.php">Domů</a>
-            <a href="anime.php">Anime</a>
-            <a href="manga.php">Manga</a>
+            <div class="nav-links">
+              <a href="index.php">Domů</a>
+              <a href="anime.php">Anime</a>
+              <a href="manga.php">Manga</a>
+            </div>
+            <div class="nav-placeholder"></div>
           </div>
         </nav>
 
