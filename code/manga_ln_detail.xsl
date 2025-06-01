@@ -22,7 +22,7 @@
         <nav>
           <div class="nav-inner">
             <div class="nav-links">
-              <a href="index.php">Domů</a>
+              <a href="index.php">Home</a>
               <a href="anime.php">Anime</a>
               <a href="manga.php">Manga</a>
             </div>
@@ -38,10 +38,10 @@
             <div class="title-image-info">
               <img class="title-image" src="images/{image}" alt="{name_en}"/>
               <div class="title-info">
-                <p><strong>Typ:</strong> <xsl:value-of select="type"/></p>
-                <p><strong>Status:</strong> <xsl:value-of select="status"/></p>
-                <p><strong>Žánry:</strong> <xsl:value-of select="genres"/></p>
-                <p><strong>Epizody:</strong> <xsl:value-of select="episodes"/></p>
+                <p><strong>Type: </strong> <xsl:value-of select="type"/></p>
+                <p><strong>Status: </strong> <xsl:value-of select="status"/></p>
+                <p><strong>Genres: </strong> <xsl:value-of select="genres"/></p>
+                <p><strong>Volumes: </strong> <xsl:value-of select="episodes"/></p>
               </div>
             </div>
 
@@ -52,7 +52,7 @@
           </div>
 
           <xsl:if test="relations/relation">
-            <h3>Vztahy</h3>
+            <h3>Relationships</h3>
             <xsl:for-each select="relations/relation">
               <a class="relation-card">
                 <xsl:attribute name="href">

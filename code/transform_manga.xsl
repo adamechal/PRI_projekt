@@ -20,18 +20,18 @@
         <nav>
           <div class="nav-inner">
             <div class="nav-links">
-              <a href="index.php">Domů</a>
+              <a href="index.php">Home</a>
               <a href="anime.php">Anime</a>
               <a href="manga.php">Manga</a>
             </div>
             <div class="nav-search">
-              <input type="text" id="search" placeholder="Hledat název..."/>
+              <input type="text" id="search" placeholder="Search name..."/>
             </div>
           </div>
         </nav>
 
         <div id="content">
-          <h1>Manga a Light Novely</h1>
+          <h1>Manga and Light Novels</h1><br/>
 
           <xsl:for-each select="title[@category='manga']">
             <div class="title-card">

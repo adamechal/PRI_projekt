@@ -21,14 +21,14 @@
         <nav>
           <div class="nav-inner">
             <div class="nav-links">
-              <a href="index.php">Domů</a>
+              <a href="index.php">Home</a>
               <a href="anime.php">Anime</a>
               <a href="manga.php">Manga</a>
             </div>
             <div class="nav-search">
-              <input type="text" id="search" placeholder="Hledat název..."/>
+              <input type="text" id="search" placeholder="Search name..."/>
               <select id="typeFilter">
-                <option value="">Všechny typy</option>
+                <option value="">All types</option>
                 <option value="tv">TV</option>
                 <option value="movie">Movie</option>
                 <option value="manga">Manga</option>
@@ -39,8 +39,7 @@
         </nav>
 
         <div id="content">
-          <h1>Seznam titulů</h1>
-
+          <h1>List of all titles</h1><br/>
           <h2 class="section-title">Anime</h2>
           <xsl:for-each select="title[@category='anime']">
             <div class="title-card" data-type="{type}">

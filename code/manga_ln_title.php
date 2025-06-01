@@ -113,7 +113,7 @@ while ($row = $res->fetch_assoc()) {
 
     $typeLower = strtolower($row['type_name']);
     if (!$relationType && !in_array($typeLower, ['manga', 'ln']) && $row['id_type'] != $currentType) {
-        $relationType = 'Adaptace';
+        $relationType = 'Adaptation';
     }
 
     if (!$relationType) continue;
