@@ -1,51 +1,42 @@
 <?php
-require_once 'db.php';
+require 'db.php';
 
-function createSlug($string) {
-    $slug = strtolower(trim($string));
-    $slug = preg_replace('/[^a-z0-9-]+/', '-', $slug);
-    $slug = preg_replace('/-+/', '-', $slug);
-    return trim($slug, '-');
+function slugify($text) {
+    return trim(preg_replace('/[^a-z0-9]+/', '-', strtolower($text)), '-');
 }
 
-$query = "
+$result = $mysqli->query("
     SELECT 
-        t.id_title,
-        t.en_name,
-        t.episodes,
-        ty.type_name,
-        t.image
-    FROM titles t
-    JOIN types ty ON t.id_type = ty.id_type
-    WHERE ty.type_name IN ('manga', 'ln')
-    ORDER BY t.id_series ASC, t.id_title ASC
-";
+    t.id_title,
+    t.en_name,
+    t.episodes,
+    ty.type_name,
+    t.image
+FROM titles t
+JOIN types ty ON t.id_type = ty.id_type
+LEFT JOIN series s ON t.id_series = s.id_series
+WHERE ty.type_name IN ('manga', 'ln')
+ORDER BY s.series_name ASC, t.id_title ASC
 
-$result = $mysqli->query($query);
+");
 
 $dom = new DOMDocument('1.0', 'UTF-8');
-$dom->formatOutput = true;
-
-$titlesElement = $dom->createElement('titles');
+$titles = $dom->appendChild($dom->createElement('titles'));
 
 while ($row = $result->fetch_assoc()) {
-    $title = $dom->createElement('title');
+    $title = $titles->appendChild($dom->createElement('title'));
     $title->setAttribute('category', 'manga');
-
-    $title->appendChild($dom->createElement('name', $row['en_name']));
-    $title->appendChild($dom->createElement('episodes', (int)$row['episodes']));
-    $title->appendChild($dom->createElement('type', $row['type_name']));
-    $title->appendChild($dom->createElement('image', $row['image']));
-    $title->appendChild($dom->createElement('slug', createSlug($row['en_name'])));
-
-    $titlesElement->appendChild($title);
+    foreach (['name' => $row['en_name'],
+            'episodes' => (int)$row['episodes'],
+            'type' => $row['type_name'],
+            'image' => $row['image'],
+            'slug' => slugify($row['en_name'])] as $k => $v) {
+        $title->appendChild($dom->createElement($k, $v));
+    }
 }
 
-$dom->appendChild($titlesElement);
-
 if (!$dom->schemaValidate('schema.xsd')) {
-    header('Content-Type: text/plain; charset=UTF-8');
-    die("Neplatný XML dokument podle XSD.");
+    exit("Neplatný XML dokument.");
 }
 
 $xsl = new DOMDocument();

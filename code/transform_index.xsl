@@ -8,12 +8,14 @@
       <head>
         <meta charset="UTF-8"/>
         <title>AniShelf - Seznam titulů</title>
-        <link rel="stylesheet" href="styles.css" type="text/css"/>
+        <link rel="stylesheet" href="styles.css"/>
       </head>
       <body>
 
         <div id="logo">
-          <a href="index.php"><img src="images/anishelf_logo.png" width="200" height="200" alt="AniShelf logo"/></a>
+          <a href="index.php">
+            <img src="images/anishelf_logo.png" width="200" height="200" alt="AniShelf logo"/>
+          </a>
         </div>
 
         <nav>
@@ -44,7 +46,9 @@
             <div class="title-card" data-type="{type}">
               <img src="images/{image}" alt="{name}"/>
               <div class="title-info">
-                <a href="title.php?slug={slug}"><xsl:value-of select="name"/></a><br/>
+                <a href="title.php?slug={slug}">
+                  <xsl:value-of select="name"/>
+                </a><br/>
                 <div class="details">
                   <xsl:value-of select="type"/> (<xsl:value-of select="episodes"/> eps)
                 </div>
@@ -57,7 +61,9 @@
             <div class="title-card" data-type="{type}">
               <img src="images/{image}" alt="{name}"/>
               <div class="title-info">
-                <a href="manga_ln_title.php?slug={slug}"><xsl:value-of select="name"/></a><br/>
+                <a href="manga_ln_title.php?slug={slug}">
+                  <xsl:value-of select="name"/>
+                </a><br/>
                 <div class="details">
                   <xsl:value-of select="type"/>
                 </div>
@@ -66,30 +72,7 @@
           </xsl:for-each>
         </div>
 
-        <script>
-          <![CDATA[
-            const searchInput = document.getElementById("search");
-            const typeFilter = document.getElementById("typeFilter");
-
-            function filterTitles() {
-              const query = searchInput.value.toLowerCase();
-              const type = typeFilter.value.toLowerCase();
-
-              document.querySelectorAll(".title-card").forEach(card => {
-                const name = card.querySelector("a").textContent.toLowerCase();
-                const cardType = card.dataset.type.toLowerCase();
-                const matchesSearch = name.includes(query);
-                const matchesType = !type || cardType === type;
-
-                card.style.display = (matchesSearch && matchesType) ? "" : "none";
-              });
-            }
-
-            searchInput.addEventListener("input", filterTitles);
-            typeFilter.addEventListener("change", filterTitles);
-          ]]>
-        </script>
-
+        <script src="index.js"></script>
       </body>
     </html>
   </xsl:template>

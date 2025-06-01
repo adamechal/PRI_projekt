@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
   <xsl:template match="/titles">
@@ -8,12 +7,14 @@
       <head>
         <meta charset="UTF-8"/>
         <title>AniShelf - Manga</title>
-        <link rel="stylesheet" href="styles.css" type="text/css"/>
+        <link rel="stylesheet" href="styles.css"/>
       </head>
       <body>
 
         <div id="logo">
-          <a href="index.php"><img src="images/anishelf_logo.png" width="200" height="200" alt="AniShelf logo"/></a>
+          <a href="index.php">
+            <img src="images/anishelf_logo.png" width="200" height="200" alt="AniShelf logo"/>
+          </a>
         </div>
 
         <nav>
@@ -36,26 +37,18 @@
             <div class="title-card">
               <img src="images/{image}" alt="{name}"/>
               <div class="title-info">
-                <a href="manga_ln_title.php?slug={slug}"><xsl:value-of select="name"/></a><br/>
-                <div class="details"><xsl:value-of select="type"/></div>
+                <a href="manga_ln_title.php?slug={slug}">
+                  <xsl:value-of select="name"/>
+                </a><br/>
+                <div class="details">
+                  <xsl:value-of select="type"/>
+                </div>
               </div>
             </div>
           </xsl:for-each>
         </div>
 
-        <script>
-          <![CDATA[
-            const searchInput = document.getElementById("search");
-            searchInput.addEventListener("input", function () {
-              const query = this.value.toLowerCase();
-              document.querySelectorAll(".title-card").forEach(card => {
-                const name = card.querySelector("a").textContent.toLowerCase();
-                card.style.display = name.includes(query) ? "" : "none";
-              });
-            });
-          ]]>
-        </script>
-
+        <script src="anime_manga.js"></script>
       </body>
     </html>
   </xsl:template>

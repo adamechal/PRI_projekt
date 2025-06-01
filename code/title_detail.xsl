@@ -55,7 +55,17 @@
           <xsl:if test="relations/relation">
             <h3>Vztahy</h3>
             <xsl:for-each select="relations/relation">
-              <a class="relation-card" href="title.php?slug={slug}">
+              <a class="relation-card">
+                <xsl:attribute name="href">
+                  <xsl:choose>
+                    <xsl:when test="translate(content_type, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = 'manga' or translate(content_type, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = 'ln'">
+                      <xsl:text>manga_ln_title.php?slug=</xsl:text><xsl:value-of select="slug"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:text>title.php?slug=</xsl:text><xsl:value-of select="slug"/>
+                    </xsl:otherwise>
+                  </xsl:choose>
+                </xsl:attribute>
                 <div class="relation-text">
                   <strong><xsl:value-of select="type"/></strong>
                   (<xsl:value-of select="content_type"/>)

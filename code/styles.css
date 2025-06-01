@@ -255,65 +255,61 @@ nav select:focus {
 
 
 form {
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 30px;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 6px;
-            color: #333;
-        }
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 6px;
+    color: #333;
+}
 
-        input[type="text"],
-        input[type="number"],
-        select,
-        textarea,
-        input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
+input[type="text"],
+input[type="number"],
+select,
+textarea,
+input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
 
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
+textarea {
+resize: vertical;
+min-height: 80px;
+}
 
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            transition: background-color 0.2s ease-in-out;
-        }
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background-color 0.2s ease-in-out;
+}
 
-        button:hover {
-            background-color: #0056b3;
-        }
+button:hover {
+    background-color: #0056b3;
+}
 
-        select[multiple] {
-            height: auto;
-        }
+select[multiple] {
+    height: auto;
+}
 
-        @media (max-width: 640px) {
-            form {
-                padding: 20px;
-                margin: 20px;
-            }
-        }
-
-
-/* Když nav-search chybí, drží místo */
-
+@media (max-width: 640px) {
+    form {
+        padding: 20px;
+        margin: 20px;
+    }
+}
