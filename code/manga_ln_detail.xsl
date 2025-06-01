@@ -50,9 +50,9 @@
               <p><xsl:value-of select="synopsis"/></p>
             </div>
           </div>
-
+          <br/><hr/><br/>
           <xsl:if test="relations/relation">
-            <h3>Relationships</h3>
+            <h3>Relationships</h3><br/>
             <xsl:for-each select="relations/relation">
               <a class="relation-card">
                 <xsl:attribute name="href">
